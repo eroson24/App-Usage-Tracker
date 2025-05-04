@@ -1,5 +1,6 @@
 import datetime as dt
 import os.path
+import sched
 import time
 import win32gui as win
 
@@ -9,15 +10,24 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-SCOPES = ["https://www.googleapis.com/auth/calendar"]
+SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
 
-def get_active_window_title():
+def checkProgram():
+    global cacheProgram
+    global currentProgram
+    
     activeWindow = win.GetForegroundWindow()
-    return win.GetWindowText(activeWindow)
+    currentProgram = win.GetWindowText(activeWindow)
+    
+    if (cacheProgram == currentProgram):
+        print("Same program! You are on " + currentProgram)
+    else:
+        print("Program switch detected! ")
+        print("From " + cacheProgram + " to " + currentProgram)
+    
+    cacheProgram = currentProgram
 
-print("Your active window at the moment is " + get_active_window_title())
-
-def main():
+def auth():
     # Google Calendar authentication
     creds = None
 
@@ -29,18 +39,29 @@ def main():
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
             "credentials.json", SCOPES
-        )
-        creds = flow.run_local_server(port=0)
+            )
+            creds = flow.run_local_server(port=0)
 
     # Save the credentials for the next run.
     with open("token.json", "w") as token:
       token.write(creds.to_json())
-
     try:
-        service = build("calendar", )
+        service = build("calendar", 'v3', credentials=creds)
+        created_event = service.events().quickAdd(
+        calendarId='primary',
+        text='Appointment on June 3rd 10am-10:25am').execute()
     except HttpError as error: 
         print("An error occurred :( - ", error)
 
-        
+auth()
+cacheProgram = "None"
+currentProgram = None
 
+activeWindow = win.GetForegroundWindow()
+currentProgram = win.GetWindowText(activeWindow)
 
+checkProgramScheduler = sched.scheduler(time.time, time.sleep)
+
+while True:
+    checkProgramScheduler.enter(delay = 60, priority = 1, action = checkProgram)
+    checkProgramScheduler.run()
