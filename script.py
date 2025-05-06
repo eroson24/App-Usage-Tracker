@@ -1,4 +1,5 @@
 import ctypes
+import json
 import os.path
 import schedule
 import psutil
@@ -17,17 +18,8 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
 eventStrings = ["playing games", "browsing the web", "programming", "listening to music", "chatting", "on uncategorized apps"]
 eventTimeLog = [0, 0, 0, 0, 0, 0]
 eventCounter = 1
-appToCategory = {
-    "Battle.net.exe": "Gaming",
-    "Overwatch.exe": "Gaming",
-    "steam.exe": "Gaming",
-    "msedge.exe": "Browsing",
-    "chrome.exe": "Browsing",
-    "Code.exe": "Programming",
-    "Spotify.exe": "Music",
-    "Discord.exe": "Chatting"
-}
-
+with open("app_to_category.json", "r") as dictionary:
+    appToCategory = json.load(dictionary)
 
 def auth():
     # Google Calendar authentication
@@ -119,26 +111,21 @@ def logActivity():
     except psutil.NoSuchProcess:
         processName = None
 
-    # Try to locate type of event and log
-    uncategorized = True
-
+    # Locate type of event and log
     for key in appToCategory:
-        if key == processName:
-            uncategorized = False
-            typeOfProgram = appToCategory[key]
-            if typeOfProgram == "Gaming":
-                eventTimeLog[0] += 1
-            if typeOfProgram == "Browsing":
-                eventTimeLog[1] += 1
-            if typeOfProgram == "Programming":
-                eventTimeLog[2] += 1
-            if typeOfProgram == "Music":
-                eventTimeLog[3] += 1
-            if typeOfProgram == "Chatting":
-                eventTimeLog[4] += 1
-
-    if uncategorized:
-        eventTimeLog[5] += 1
+        typeOfProgram = appToCategory[key]
+        if typeOfProgram == 0:
+            eventTimeLog[0] += 1
+        if typeOfProgram == 1:
+            eventTimeLog[1] += 1
+        if typeOfProgram == 2:
+            eventTimeLog[2] += 1
+        if typeOfProgram == 3:
+            eventTimeLog[3] += 1
+        if typeOfProgram == 4:
+            eventTimeLog[4] += 1
+        if typeOfProgram == 5:
+            eventTimeLog[5] += 1
 
 auth()
 
