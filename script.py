@@ -1,4 +1,3 @@
-import datetime as dt
 import os.path
 import schedule
 import psutil
