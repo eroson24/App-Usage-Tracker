@@ -14,7 +14,7 @@ from googleapiclient.errors import HttpError
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
 
-# [Gaming, Browsing, Programming, Music, Chatting, Uncategorized]
+eventStrings = ["playing games", "browsing the web", "programming", "listening to music", "chatting", "on uncategorized apps"]
 eventTimeLog = [0, 0, 0, 0, 0, 0]
 logCounter = 1
 appToCategory = {
@@ -56,16 +56,41 @@ def createEvent():
     global timeEnd
     global logCounter
 
-    timeEnd = time.strftime("%H:%M")
+    # Generate an event description string
+    eventDescription = ""
+    i = 0
+    for a in eventTimeLog:
+        if a != 0:
+            eventDescription = eventDescription + (f"Time spent {eventStrings[i]}: {a} seconds\n")
+        i += 1
+
+    timeEnd = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
     try:
         service = build("calendar", 'v3', credentials=creds)
-        created_event = service.events().quickAdd(
-        calendarId='primary',
-        text=f"Log #{logCounter} on {timeBegin}{timeEnd}").execute()
+        event = {
+                'summary': f'Log #{logCounter}',
+                'description': eventDescription,
+                'colorId': '1',
+                'start': {
+                'dateTime': timeBegin
+                },
+                'end': {
+                'dateTime': timeEnd
+                },
+                'reminders': {
+                'useDefault': False,
+                }
+                }
+        # Add event to primary calendar
+        event = service.events().insert(calendarId='primary', body=event).execute()
+        
     except HttpError as error: 
         print("An error occurred :( - ", error)
 
-    timeBegin = time.strftime("%B %d %H:%M - ")
+    # reset timeBegin and eventTimeLog, andincrement logCounter
+    timeBegin = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
+    for i in range(len(eventTimeLog)):
+        eventTimeLog[i] = 0
     logCounter += 1
 
 def logActivity():
@@ -105,15 +130,14 @@ def logActivity():
     if uncategorized:
         eventTimeLog[5] += 1
 
-
 auth()
 
 # Set up scheduler
-schedule.every(3).minutes.do(createEvent)
+schedule.every(4).minutes.do(createEvent)
 schedule.every(1).second.do(logActivity)
 
 # Initial timeBegin and timeEnd
-timeBegin = time.strftime("%B %d %H:%M - ")
+timeBegin = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
 timeEnd = None
 
 while True:
