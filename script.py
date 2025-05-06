@@ -1,3 +1,4 @@
+import ctypes
 import os.path
 import schedule
 import psutil
@@ -60,21 +61,25 @@ def createEvent():
     global timeBegin
     global timeEnd
     global eventCounter
+    global createEventInterval
 
     # Generate an event description string
     eventDescription = ""
+    
     i = 0
     for a in eventTimeLog:
         if a != 0:
-            eventDescription += (f"Time spent {eventStrings[i]}: {a} seconds\n")
+            eventDescription += (f"Time spent {eventStrings[i]}: {a // 60} min {a % 60} seconds ({format(100 * (a / (createEventInterval * 60)), '.2f')}%)\n")
         i += 1
+    eventDescription += "\n"
+
 
     timeEnd = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
     try:
         event = {
                 'summary': f'Log #{eventCounter}',
                 'description': eventDescription,
-                'colorId': '1',
+                'colorId': (eventCounter % 11) + 1,
                 'start': {
                 'dateTime': timeBegin
                 },
@@ -104,7 +109,8 @@ def logActivity():
     #  Get the name of the program the user is on
     activeWindow = win.GetForegroundWindow()
     pid = winp.GetWindowThreadProcessId(activeWindow)
-    pid = pid[1]
+    # Handles error of pid being treated as negative. Converts to uint32
+    pid = ctypes.c_uint32(pid[1]).value
 
     # Returns either programName.exe or None if on desktop / no active program
     try:
@@ -137,7 +143,8 @@ def logActivity():
 auth()
 
 # Set up scheduler
-schedule.every(4).minutes.do(createEvent)
+createEventInterval = 10
+schedule.every(createEventInterval).minutes.do(createEvent)
 schedule.every(1).second.do(logActivity)
 
 # Initial timeBegin and timeEnd
