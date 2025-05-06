@@ -50,6 +50,12 @@ def auth():
     with open("token.json", "w") as token:
       token.write(creds.to_json())
 
+    # Build calendar service
+    try:
+        service = build("calendar", 'v3', credentials=creds)
+    except HttpError as error: 
+        print("An error occurred :( - ", error)
+
 def createEvent():
     global timeBegin
     global timeEnd
@@ -60,12 +66,11 @@ def createEvent():
     i = 0
     for a in eventTimeLog:
         if a != 0:
-            eventDescription = eventDescription + (f"Time spent {eventStrings[i]}: {a} seconds\n")
+            eventDescription += (f"Time spent {eventStrings[i]}: {a} seconds\n")
         i += 1
 
     timeEnd = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
     try:
-        service = build("calendar", 'v3', credentials=creds)
         event = {
                 'summary': f'Log #{logCounter}',
                 'description': eventDescription,
