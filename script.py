@@ -1,8 +1,10 @@
 import datetime as dt
 import os.path
-import sched
+import schedule
+import psutil
 import time
 import win32gui as win
+import win32process as winp
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -12,23 +14,26 @@ from googleapiclient.errors import HttpError
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
 
-def checkProgram():
-    global cacheProgram
-    global currentProgram
-    
-    activeWindow = win.GetForegroundWindow()
-    currentProgram = win.GetWindowText(activeWindow)
-    
-    if (cacheProgram == currentProgram):
-        print("Same program! You are on " + currentProgram)
-    else:
-        print("Program switch detected! ")
-        print("From " + cacheProgram + " to " + currentProgram)
-    
-    cacheProgram = currentProgram
+# [Gaming, Browsing, Programming, Music, Chatting, Uncategorized]
+eventTimeLog = [0, 0, 0, 0, 0, 0]
+logCounter = 1
+appToCategory = {
+    "Battle.net.exe": "Gaming",
+    "Overwatch.exe": "Gaming",
+    "steam.exe": "Gaming",
+    "msedge.exe": "Browsing",
+    "chrome.exe": "Browsing",
+    "Code.exe": "Programming",
+    "Spotify.exe": "Music",
+    "Discord.exe": "Chatting"
+}
+
 
 def auth():
     # Google Calendar authentication
+    global creds
+    global service
+    
     creds = None
 
     if os.path.exists("token.json"):
@@ -45,23 +50,75 @@ def auth():
     # Save the credentials for the next run.
     with open("token.json", "w") as token:
       token.write(creds.to_json())
+
+def createEvent():
+    global timeBegin
+    global timeEnd
+    global logCounter
+
+    timeEnd = time.strftime("%H:%M")
     try:
         service = build("calendar", 'v3', credentials=creds)
         created_event = service.events().quickAdd(
         calendarId='primary',
-        text='Appointment on June 3rd 10am-10:25am').execute()
+        text=f"Log #{logCounter} on {timeBegin}{timeEnd}").execute()
     except HttpError as error: 
         print("An error occurred :( - ", error)
 
+    timeBegin = time.strftime("%B %d %H:%M - ")
+    logCounter += 1
+
+def logActivity():
+    global eventTimeLog
+    global appToCategory
+
+    #  Get the name of the program the user is on
+    activeWindow = win.GetForegroundWindow()
+    pid = winp.GetWindowThreadProcessId(activeWindow)
+    pid = pid[1]
+
+    # Returns either programName.exe or None if on desktop / no active program
+    try:
+        proc = psutil.Process(pid)
+        processName = proc.name()
+    except psutil.NoSuchProcess:
+        processName = None
+
+    # Try to locate type of event and log
+    uncategorized = True
+
+    for key in appToCategory:
+        if key == processName:
+            uncategorized = False
+            typeOfProgram = appToCategory[key]
+            if typeOfProgram == "Gaming":
+                eventTimeLog[0] += 1
+            if typeOfProgram == "Browsing":
+                eventTimeLog[1] += 1
+            if typeOfProgram == "Programming":
+                eventTimeLog[2] += 1
+            if typeOfProgram == "Music":
+                eventTimeLog[3] += 1
+            if typeOfProgram == "Chatting":
+                eventTimeLog[4] += 1
+
+    if uncategorized:
+        eventTimeLog[5] += 1
+
+
 auth()
-cacheProgram = "None"
-currentProgram = None
 
-activeWindow = win.GetForegroundWindow()
-currentProgram = win.GetWindowText(activeWindow)
+# Set up scheduler
+schedule.every(3).minutes.do(createEvent)
+schedule.every(1).second.do(logActivity)
 
-checkProgramScheduler = sched.scheduler(time.time, time.sleep)
+# Initial timeBegin and timeEnd
+timeBegin = time.strftime("%B %d %H:%M - ")
+timeEnd = None
 
 while True:
-    checkProgramScheduler.enter(delay = 60, priority = 1, action = checkProgram)
-    checkProgramScheduler.run()
+    # Check for events every second
+    schedule.run_pending()
+    time.sleep(1)
+    
+    
