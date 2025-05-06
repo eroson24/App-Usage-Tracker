@@ -15,7 +15,7 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
 
 eventStrings = ["playing games", "browsing the web", "programming", "listening to music", "chatting", "on uncategorized apps"]
 eventTimeLog = [0, 0, 0, 0, 0, 0]
-logCounter = 1
+eventCounter = 1
 appToCategory = {
     "Battle.net.exe": "Gaming",
     "Overwatch.exe": "Gaming",
@@ -59,7 +59,7 @@ def auth():
 def createEvent():
     global timeBegin
     global timeEnd
-    global logCounter
+    global eventCounter
 
     # Generate an event description string
     eventDescription = ""
@@ -72,7 +72,7 @@ def createEvent():
     timeEnd = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
     try:
         event = {
-                'summary': f'Log #{logCounter}',
+                'summary': f'Log #{eventCounter}',
                 'description': eventDescription,
                 'colorId': '1',
                 'start': {
@@ -91,11 +91,11 @@ def createEvent():
     except HttpError as error: 
         print("An error occurred :( - ", error)
 
-    # reset timeBegin and eventTimeLog, andincrement logCounter
+    # reset timeBegin and eventTimeLog, andincrement eventCounter
     timeBegin = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
     for i in range(len(eventTimeLog)):
         eventTimeLog[i] = 0
-    logCounter += 1
+    eventCounter += 1
 
 def logActivity():
     global eventTimeLog
