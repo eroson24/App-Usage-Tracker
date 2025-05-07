@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 import json
-import win32gui as wing
-import win32process as winp
 import win32com.client as winc
 import ctypes
 import psutil
@@ -105,3 +103,6 @@ r6.pack(anchor='w')
 
 # Run window
 window.mainloop()
+
+# Close file
+fid.close() 

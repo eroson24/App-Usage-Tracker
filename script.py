@@ -1,6 +1,6 @@
 import ctypes
 import json
-import os.path
+import os
 import schedule
 import psutil
 import subprocess
@@ -56,7 +56,6 @@ def auth():
 
 def createEvent():
     global timeBegin
-    global timeEnd
     global eventCounter
     global createEventInterval
 
@@ -88,7 +87,7 @@ def createEvent():
                 }
                 }
         # Add event to primary calendar
-        event = service.events().insert(calendarId='primary', body=event).execute()
+        service.events().insert(calendarId='primary', body=event).execute()
         
     except HttpError as error: 
         print("An error occurred :( - ", error)
@@ -130,9 +129,8 @@ createEventInterval = 5
 schedule.every(createEventInterval).minutes.do(createEvent)
 schedule.every(1).second.do(logActivity)
 
-# Initial timeBegin and timeEnd
+# Initialize timeBegin
 timeBegin = time.strftime("%Y-%m-%dT%H:%M:00%z")[:-2] + ":" + time.strftime("%Y-%m-%dT%H:%M:00%z")[-2:]
-timeEnd = None
 
 while True:
     # Check for events every second
