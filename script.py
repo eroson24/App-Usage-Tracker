@@ -3,6 +3,7 @@ import json
 import os.path
 import schedule
 import psutil
+import subprocess
 import time
 import win32gui as win
 import win32process as winp
@@ -14,6 +15,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events.owned"]
+
+# Run gui.py to update appToCategory dictionary before running rest of script.py
+subprocess.run(["python", "gui.py"])
+time.sleep(2)  # short pause before tracking starts
 
 eventStrings = ["playing games", "browsing the web", "programming", "listening to music", "chatting", "on uncategorized apps"]
 eventTimeLog = [0, 0, 0, 0, 0, 0]
