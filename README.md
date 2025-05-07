@@ -9,6 +9,10 @@ A desktop productivity tool that monitors which applications you're using and lo
 - Simple GUI to configure program categories
 - Data stored locally in `app_to_category.json`
 
+## To-do
+ - Allow users to add, remove, and change names of categories
+ - Let users pick time interval to create logs through GUI
+
 ---
 
 ## 🛠️ Setup Instructions
