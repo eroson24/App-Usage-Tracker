@@ -48,7 +48,7 @@ for exeName in processList:
         appToCategory[exeName] = 5
 
 #Alphabetize and update dictionary
-appToCategory = dict(sorted(appToCategory.items()))
+appToCategory = dict(sorted(appToCategory.items(), key=lambda item: item[0].lower()))
 updateDictionary()
 
 # Begin populating window

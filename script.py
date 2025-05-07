@@ -112,25 +112,16 @@ def logActivity():
         processName = None
 
     # Locate type of event and log
-    for key in appToCategory:
-        typeOfProgram = appToCategory[key]
-        if typeOfProgram == 0:
-            eventTimeLog[0] += 1
-        if typeOfProgram == 1:
-            eventTimeLog[1] += 1
-        if typeOfProgram == 2:
-            eventTimeLog[2] += 1
-        if typeOfProgram == 3:
-            eventTimeLog[3] += 1
-        if typeOfProgram == 4:
-            eventTimeLog[4] += 1
-        if typeOfProgram == 5:
-            eventTimeLog[5] += 1
+    if processName in appToCategory:
+        typeOfProgram = appToCategory[processName]
+    else:
+        typeOfProgram = 5
+    eventTimeLog[typeOfProgram] += 1
 
 auth()
 
 # Set up scheduler
-createEventInterval = 10
+createEventInterval = 5
 schedule.every(createEventInterval).minutes.do(createEvent)
 schedule.every(1).second.do(logActivity)
 
