@@ -14,6 +14,7 @@ def updateDictionary():
 window = tk.Tk()
 window.title("App Usage Tracker")
 window.geometry("700x400")
+window.configure(bg="#e8e8e8")
 
 # Get list of processes
 processList = []
@@ -53,6 +54,7 @@ updateDictionary()
 # Top text widget
 instructions = ttk.Label(master = window, text = "Categorize each .exe below to log its usage into its respective category.", font = "Calibri 12 bold")
 instructions.pack(side = 'top', pady = 10)
+instructions.configure(background="#e8e8e8")
 
 # Change detecting functions
 # Detect tree change
