@@ -46,6 +46,9 @@ appToCategory = json.load(fid)
 for exeName in processList:
     if exeName not in appToCategory:
         appToCategory[exeName] = 5
+
+#Alphabetize and update dictionary
+appToCategory = dict(sorted(appToCategory.items()))
 updateDictionary()
 
 # Begin populating window
@@ -53,33 +56,52 @@ updateDictionary()
 instructions = ttk.Label(master = window, text = "Categorize each .exe below to log its usage into its respective category.", font = "Calibri 12 bold")
 instructions.pack(side = 'top', pady = 10)
 
+# Change detecting functions
+# Detect tree change
+def selectedExeChange():
+    selected_item = treeview.selection()
+    # Only proceed if something is selected
+    if selected_item:  
+        exe_name = treeview.item(selected_item[0])["text"]
+        selected.set(appToCategory[exe_name])
+
+# Detect radio button change
+def selectedButtonChange():
+    selected_item = treeview.selection()
+    # Only proceed if something is selected
+    if selected_item: 
+        exe_name = treeview.item(selected_item[0])["text"]
+        selectedInt = selected.get()
+        appToCategory[exe_name] = selectedInt
+    updateDictionary()
+    
 
 # Left applications widget
 programListFrame = ttk.Frame(master = window)
-treeview = ttk.Treeview(master = programListFrame)
-for app in processList:
-    level1 = treeview.insert("", tk.END, text = app)
-
-programListFrame.pack(side = 'left', padx = 100)
-treeview.pack()
+treeview = ttk.Treeview(master = programListFrame, selectmode="browse")
+for app in appToCategory:
+    treeview.insert("", tk.END, text = app)
+programListFrame.pack(side = 'left', padx = 100, pady = 60, fill='both', expand=True)
+treeview.pack(fill='both', expand=True)
+treeview.bind("<<TreeviewSelect>>", lambda e: selectedExeChange())
 
 # Right options widget
 categoryFrame = ttk.Frame(master = window)
 selected = tk.IntVar()
-r1 = ttk.Radiobutton(categoryFrame, text='Gaming', value=0, variable = selected)
-r2 = ttk.Radiobutton(categoryFrame, text='Browsing', value=1, variable = selected)
-r3 = ttk.Radiobutton(categoryFrame, text='Programming', value=2, variable = selected)
-r4 = ttk.Radiobutton(categoryFrame, text='Music', value=3, variable = selected)
-r5 = ttk.Radiobutton(categoryFrame, text='Chatting', value=4, variable = selected)
-r6 = ttk.Radiobutton(categoryFrame, text='Other', value=5, variable = selected)
+r1 = ttk.Radiobutton(categoryFrame, text='Gaming', value=0, variable = selected, command=selectedButtonChange)
+r2 = ttk.Radiobutton(categoryFrame, text='Browsing', value=1, variable = selected, command=selectedButtonChange)
+r3 = ttk.Radiobutton(categoryFrame, text='Programming', value=2, variable = selected, command=selectedButtonChange)
+r4 = ttk.Radiobutton(categoryFrame, text='Music', value=3, variable = selected, command=selectedButtonChange)
+r5 = ttk.Radiobutton(categoryFrame, text='Chatting', value=4, variable = selected, command=selectedButtonChange)
+r6 = ttk.Radiobutton(categoryFrame, text='Other', value=5, variable = selected, command=selectedButtonChange)
 
-categoryFrame.pack(side = 'right', padx = 100)
-r1.pack()
-r2.pack()
-r3.pack()
-r4.pack()
-r5.pack()
-r6.pack()
+categoryFrame.pack(side = 'right', padx = (0,100))
+r1.pack(anchor='w')
+r2.pack(anchor='w')
+r3.pack(anchor='w')
+r4.pack(anchor='w')
+r5.pack(anchor='w')
+r6.pack(anchor='w')
 
 # Run window
 window.mainloop()
